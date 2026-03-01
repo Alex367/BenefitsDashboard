@@ -1,3 +1,9 @@
+# Install project dependencies
+
+``` bash
+npm install
+```
+
 # Start all tests in headless mode
 
 ``` bash
