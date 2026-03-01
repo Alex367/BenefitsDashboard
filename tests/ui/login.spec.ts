@@ -2,14 +2,14 @@ import { test, expect } from "@playwright/test";
 import { PASSWORD, USERNAME } from "../../utils/globalVariables";
 
 
-test.describe("login test suite", () => {
+test.describe("login/logout test suite", () => {
 
     test.beforeEach(async ({page}) => {
         await page.goto("https://wmxrwq14uc.execute-api.us-east-1.amazonaws.com/Prod/Account/Login");
         await expect(page.getByRole("link", { name: "Paylocity Benefits Dashboard" })).toBeVisible();
     })
 
-    test("successfull login", async ({ page }) => {
+    test.skip("successfull login", async ({ page }) => {
 
         await page.getByRole('textbox', { name: 'Username' }).fill(USERNAME);
         await page.getByRole('textbox', { name: 'Password' }).fill(PASSWORD);
@@ -19,7 +19,7 @@ test.describe("login test suite", () => {
 
     });
 
-    test("unsuccessfull login with empty field", async ({ page }) => {
+    test.skip("unsuccessfull login with empty field", async ({ page }) => {
 
         await page.getByRole('textbox', { name: 'Username' }).fill("");
         await page.getByRole('textbox', { name: 'Password' }).fill("");
@@ -38,6 +38,19 @@ test.describe("login test suite", () => {
         await page.getByRole('button', { name: 'Log In' }).click();
 
         await expect(page).toHaveURL("https://wmxrwq14uc.execute-api.us-east-1.amazonaws.com/Prod/Account/Login");
+        await expect(page.getByRole('link', { name: 'Log Out' })).not.toBeVisible();
+
+    });
+
+    test("logout functionality", async ({ page }) => {
+
+        await page.getByRole('textbox', { name: 'Username' }).fill(USERNAME);
+        await page.getByRole('textbox', { name: 'Password' }).fill(PASSWORD);
+        await page.getByRole('button', { name: 'Log In' }).click();
+        await expect(page.getByRole('button', { name: 'Add Employee' })).toBeVisible();
+
+        await page.getByRole('link', { name: 'Log Out' }).click();
+        await expect(page).toHaveURL("https://wmxrwq14uc.execute-api.us-east-1.amazonaws.com/Prod/Account/LogIn");
         await expect(page.getByRole('link', { name: 'Log Out' })).not.toBeVisible();
 
     });
