@@ -9,7 +9,7 @@ test.describe("login/logout test suite", () => {
         await expect(page.getByRole("link", { name: "Paylocity Benefits Dashboard" })).toBeVisible();
     })
 
-    test.skip("successfull login", async ({ page }) => {
+    test("successfull login", async ({ page }) => {
 
         await page.getByRole('textbox', { name: 'Username' }).fill(USERNAME);
         await page.getByRole('textbox', { name: 'Password' }).fill(PASSWORD);
@@ -19,7 +19,7 @@ test.describe("login/logout test suite", () => {
 
     });
 
-    test.skip("unsuccessfull login with empty field", async ({ page }) => {
+    test("unsuccessfull login with empty field", async ({ page }) => {
 
         await page.getByRole('textbox', { name: 'Username' }).fill("");
         await page.getByRole('textbox', { name: 'Password' }).fill("");
@@ -31,7 +31,7 @@ test.describe("login/logout test suite", () => {
 
     });
 
-    test.fixme("unsuccessfull login with invalid values", async ({ page }) => {
+    test.skip("unsuccessfull login with invalid values", async ({ page }) => {
 
         await page.getByRole('textbox', { name: 'Username' }).fill("test11234");
         await page.getByRole('textbox', { name: 'Password' }).fill("test112324");
@@ -39,6 +39,8 @@ test.describe("login/logout test suite", () => {
 
         await expect(page).toHaveURL("https://wmxrwq14uc.execute-api.us-east-1.amazonaws.com/Prod/Account/Login");
         await expect(page.getByRole('link', { name: 'Log Out' })).not.toBeVisible();
+
+        // BUG
 
     });
 

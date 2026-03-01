@@ -32,14 +32,14 @@ test.describe("benefits test suite", () => {
         await expect(page.getByRole("link", { name: "Log Out" })).toBeVisible();
     });
 
-    test("add new employee", async ({ page }) => {
+    test.skip("add new employee", async ({ page }) => {
         let firstName = "TestName";
         let lastName = "TestLastName";
-        let dependents = "1";
+        let dependents = "10";
         let salary = "52000.00";
         let grossPay = "2000.00";
-        let benefitsCost = "57.69";
-        let netPay = "1942.31";
+        let benefitsCost = "6000.00";
+        let netPay = "1769.23";
 
         // Waiting for loading data
 
@@ -71,6 +71,8 @@ test.describe("benefits test suite", () => {
 
         let dataToTest = [uuid, firstName, lastName, dependents, salary, grossPay, benefitsCost, netPay];
 
+        // BUG
+
         for (let i = 0; i < 8; i++) {
             const cell = row.locator("td").nth(i);
             await expect(cell).toHaveText(dataToTest[i]);
@@ -95,13 +97,13 @@ test.describe("benefits test suite", () => {
 
     });
 
-    test("edit employee", async ({ page, request }) => {
+    test.skip("edit employee", async ({ page, request }) => {
         let firstName = "TestNNew";
         let lastName = "TestLNew";
         let dependents = "11";
         let salary = "52000.00";
         let grossPay = "2000.00";
-        let benefitsCost = "250.00";
+        let benefitsCost = "6500.00";
         let netPay = "1750.00";
 
         // Add new employee
@@ -153,6 +155,8 @@ test.describe("benefits test suite", () => {
 
         let dataToTest = [updateId, firstName, lastName, dependents, salary, grossPay, benefitsCost, netPay];
 
+        // BUG
+
         for (let i = 0; i < 8; i++) {
             const cell = updateRow.locator("td").nth(i);
             await expect(cell).toHaveText(dataToTest[i]);
@@ -167,4 +171,99 @@ test.describe("benefits test suite", () => {
         await expect(page.getByRole("heading")).toContainText("Delete Employee");
         await page.getByRole("button", { name: "Delete" }).click();
     });
+
+    test("delete employee", async ({ page, request }) => {
+
+        // Add new employee
+        const payload = { firstName: "TestDelete", lastName: "TestLastDelete", dependants: 10 };
+        const response = await request.post(
+            "https://wmxrwq14uc.execute-api.us-east-1.amazonaws.com/Prod/api/employees",
+            {
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: "Basic VGVzdFVzZXI4OTk6I3paWDtRfGlxRjh6",
+                },
+                data: payload,
+            },
+        );
+        const body = await response.json();
+        const uuid = body.id;
+
+        // Waiting for loading data
+        await page.reload();
+        const firstRow = page.locator("tbody tr").first();
+        await firstRow.waitFor({ state: "visible" });
+
+        const row = page.locator("tr", {
+            has: page.locator("td", { hasText: uuid }),
+        });
+
+        const actionCell = row.locator("td").last();
+        const icons = actionCell.locator("i");
+
+        await icons.nth(1).click();
+
+        await expect(page.getByRole("heading")).toContainText("Delete Employee");
+        await page.getByRole("button", { name: "Delete" }).click();
+
+        await expect(row).toHaveCount(0);
+
+    });
+
+    test("close modal window, cancel button", async ({ page }) => {
+
+        // Waiting for loading data
+        const firstRow = page.locator("tbody tr").first();
+        await firstRow.waitFor({ state: "visible" });
+
+        await page.getByRole("button", { name: "Add Employee" }).click();
+        await expect(page.getByRole('heading')).toContainText('Add Employee');
+
+        await page.getByRole('button', { name: 'Cancel' }).click();
+
+        const modal = page.locator("#employeeModal");
+        await expect(modal).toBeHidden();
+
+    });
+
+    test("close modal window, close icon", async ({ page }) => {
+
+        // Waiting for loading data
+        const firstRow = page.locator("tbody tr").first();
+        await firstRow.waitFor({ state: "visible" });
+
+        await page.getByRole("button", { name: "Add Employee" }).click();
+        await expect(page.getByRole('heading')).toContainText('Add Employee');
+
+        await page.getByRole('button', { name: 'Close' }).click();
+
+        const modal = page.locator("#employeeModal");
+        await expect(modal).toBeHidden();
+
+    });
+
+
+    test.skip("add new employee with invalid values", async ({ page }) => {
+        let firstName = "";
+        let lastName = "";
+        let dependents = "";
+
+        // Waiting for loading data
+        const firstRow = page.locator("tbody tr").first();
+        await firstRow.waitFor({ state: "visible" });
+
+        // Add new employee
+        await page.getByRole("button", { name: "Add Employee" }).click();
+        await expect(page.getByRole("heading")).toContainText("Add Employee");
+        await page.getByRole("textbox", { name: "First Name:" }).fill(firstName);
+        await page.getByRole("textbox", { name: "Last Name:" }).fill(lastName);
+        await page.getByRole("textbox", { name: "Dependents:" }).fill(dependents);
+
+        await page.getByRole("button", { name: "Add", exact: true }).click();
+
+        // BUG, Here should be validation of errors
+
+    });
+
+
 });

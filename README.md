@@ -15,3 +15,5 @@ npx playwright test ui/
 ``` bash
 npx playwright test api/
 ```
+
+All tests that contain defects are marked with the skip() annotation.
