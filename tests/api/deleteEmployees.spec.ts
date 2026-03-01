@@ -1,154 +1,76 @@
 import { test, expect } from "@playwright/test";
 
-test.describe("DELETE employees API test suite", () => {
-    test("DELETE employees, positive flow", async ({ request }) => {
+const BASE_URL = "https://wmxrwq14uc.execute-api.us-east-1.amazonaws.com/Prod/api";
 
-        // Make new employee
-        const response = await request.post(
-            "https://wmxrwq14uc.execute-api.us-east-1.amazonaws.com/Prod/api/employees",
-            {
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: "Basic VGVzdFVzZXI4OTk6I3paWDtRfGlxRjh6",
-                },
-                data: {
-                    username: "string",
-                    firstName: "TestDelete",
-                    lastName: "TestLastDelete",
-                    dependants: 10,
-                    expiration: "2026-03-01T15:21:39.108Z",
-                    salary: 100,
-                },
-            },
-        );
+const AUTH_HEADERS = {
+    Authorization: "Basic VGVzdFVzZXI4OTk6I3paWDtRfGlxRjh6",
+};
 
-        const body = await response.json();
-        const uuid = body.id;
+const JSON_HEADERS = {
+    ...AUTH_HEADERS,
+    "Content-Type": "application/json",
+};
 
-        const deleteResponse = await request.delete(`https://wmxrwq14uc.execute-api.us-east-1.amazonaws.com/Prod/api/employees/${uuid}`, {
-            headers: {
-                Authorization: "Basic VGVzdFVzZXI4OTk6I3paWDtRfGlxRjh6",
-            },
-        });
-
-        expect(deleteResponse.status()).toBe(200);
+async function createEmployee(request: any) {
+    const response = await request.post(`${BASE_URL}/employees`, {
+        headers: JSON_HEADERS,
+        data: {
+            username: "string",
+            firstName: "TestDelete",
+            lastName: "TestLastDelete",
+            dependants: 10,
+            expiration: new Date().toISOString(),
+            salary: 100,
+        },
     });
 
-    test("DELETE employees, unauthorized", async ({ request }) => {
+    expect(response.status()).toBe(200);
 
-        // Make new employee
-        const response = await request.post(
-            "https://wmxrwq14uc.execute-api.us-east-1.amazonaws.com/Prod/api/employees",
-            {
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: "Basic VGVzdFVzZXI4OTk6I3paWDtRfGlxRjh6",
-                },
-                data: {
-                    username: "string",
-                    firstName: "TestDelete",
-                    lastName: "TestLastDelete",
-                    dependants: 10,
-                    expiration: "2026-03-01T15:21:39.108Z",
-                    salary: 100,
-                },
-            },
-        );
+    const body = await response.json();
+    return body.id;
+}
 
-        const body = await response.json();
-        const uuid = body.id;
+async function deleteEmployee(request: any, id: string) {
+    return request.delete(`${BASE_URL}/employees/${id}`, {
+        headers: AUTH_HEADERS,
+    });
+}
 
-        const deleteResponse = await request.delete(`https://wmxrwq14uc.execute-api.us-east-1.amazonaws.com/Prod/api/employees/${uuid}`);
+test.describe("DELETE /employees/{id} API", () => {
+    test.describe("Positive scenarios", () => {
+        test("should delete existing employee", async ({ request }) => {
+            const id = await createEmployee(request);
 
-        expect(deleteResponse.status()).toBe(401);
+            const response = await deleteEmployee(request, id);
 
-        // Clear data
-        await request.delete(`https://wmxrwq14uc.execute-api.us-east-1.amazonaws.com/Prod/api/employees/${uuid}`, {
-            headers: {
-                Authorization: "Basic VGVzdFVzZXI4OTk6I3paWDtRfGlxRjh6",
-            },
+            expect(response.status()).toBe(200);
         });
     });
 
-    test.skip("DELETE employees, non-existing employee", async ({ request }) => {
+    test.describe("Authorization", () => {
+        test("should return 401 when unauthorized", async ({ request }) => {
+            const id = await createEmployee(request);
 
-        // Make new employee
-        const response = await request.post(
-            "https://wmxrwq14uc.execute-api.us-east-1.amazonaws.com/Prod/api/employees",
-            {
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: "Basic VGVzdFVzZXI4OTk6I3paWDtRfGlxRjh6",
-                },
-                data: {
-                    username: "string",
-                    firstName: "TestDelete",
-                    lastName: "TestLastDelete",
-                    dependants: 10,
-                    expiration: "2026-03-01T15:21:39.108Z",
-                    salary: 100,
-                },
-            },
-        );
+            const response = await request.delete(`${BASE_URL}/employees/${id}`);
 
-        const body = await response.json();
-        const uuid = body.id;
+            expect(response.status()).toBe(401);
 
-        const deleteResponse = await request.delete(`https://wmxrwq14uc.execute-api.us-east-1.amazonaws.com/Prod/api/employees/00000000-0000-0000-0000-000000000000`, {
-            headers: {
-                Authorization: "Basic VGVzdFVzZXI4OTk6I3paWDtRfGlxRjh6",
-            },
-        });
-
-        expect.soft(deleteResponse.status()).toBe(404);
-
-
-        // Clear data
-        await request.delete(`https://wmxrwq14uc.execute-api.us-east-1.amazonaws.com/Prod/api/employees/${uuid}`, {
-            headers: {
-                Authorization: "Basic VGVzdFVzZXI4OTk6I3paWDtRfGlxRjh6",
-            },
+            // cleanup
+            await deleteEmployee(request, id);
         });
     });
 
-    test.skip("DELETE employees, invalid UUID", async ({ request }) => {
+    test.describe("Negative scenarios", () => {
+        test.skip("should return 404 for non-existing employee", async ({ request }) => {
+            const response = await deleteEmployee(request, "00000000-0000-0000-0000-000000000000");
 
-        // Make new employee
-        const response = await request.post(
-            "https://wmxrwq14uc.execute-api.us-east-1.amazonaws.com/Prod/api/employees",
-            {
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: "Basic VGVzdFVzZXI4OTk6I3paWDtRfGlxRjh6",
-                },
-                data: {
-                    username: "string",
-                    firstName: "TestDelete",
-                    lastName: "TestLastDelete",
-                    dependants: 10,
-                    expiration: "2026-03-01T15:21:39.108Z",
-                    salary: 100,
-                },
-            },
-        );
-
-        const body = await response.json();
-        const uuid = body.id;
-
-        const deleteResponse = await request.delete(`https://wmxrwq14uc.execute-api.us-east-1.amazonaws.com/Prod/api/employees/invalid`, {
-            headers: {
-                Authorization: "Basic VGVzdFVzZXI4OTk6I3paWDtRfGlxRjh6",
-            },
+            expect(response.status()).toBe(404);
         });
 
-        expect.soft(deleteResponse.status()).toBe(400);
+        test.skip("should return 400 for invalid UUID format", async ({ request }) => {
+            const response = await deleteEmployee(request, "invalid");
 
-        // Clear data
-        await request.delete(`https://wmxrwq14uc.execute-api.us-east-1.amazonaws.com/Prod/api/employees/${uuid}`, {
-            headers: {
-                Authorization: "Basic VGVzdFVzZXI4OTk6I3paWDtRfGlxRjh6",
-            },
+            expect(response.status()).toBe(400);
         });
     });
-
 });

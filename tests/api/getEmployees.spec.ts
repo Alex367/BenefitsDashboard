@@ -1,31 +1,33 @@
 import { test, expect } from "@playwright/test";
 
-test.describe("GET employees API test suite", () => {
-    test("GET employees, positive flow", async ({ request }) => {
-        // Send GET request
-        const response = await request.get(
-            "https://wmxrwq14uc.execute-api.us-east-1.amazonaws.com/Prod/api/Employees",
-            {
-                headers: {
-                    Authorization: "Basic VGVzdFVzZXI4OTk6I3paWDtRfGlxRjh6",
-                },
-            },
-        );
+const BASE_URL = "https://wmxrwq14uc.execute-api.us-east-1.amazonaws.com/Prod/api";
+
+const EMPLOYEES_ENDPOINT = `${BASE_URL}/Employees`;
+
+const AUTH_HEADER = {
+    Authorization: "Basic VGVzdFVzZXI4OTk6I3paWDtRfGlxRjh6",
+};
+
+test.describe("GET /Employees API", () => {
+    test("should return 200 when authorized", async ({ request }) => {
+        const response = await request.get(EMPLOYEES_ENDPOINT, {
+            headers: AUTH_HEADER,
+        });
 
         expect(response.status()).toBe(200);
     });
 
-    test("GET employees, unauthorized", async ({ request }) => {
-        // Send GET request
-        const response = await request.get("https://wmxrwq14uc.execute-api.us-east-1.amazonaws.com/Prod/api/Employees");
+    test("should return 401 when authorization header is missing", async ({ request }) => {
+        const response = await request.get(EMPLOYEES_ENDPOINT);
 
         expect(response.status()).toBe(401);
     });
 
-    test("GET employees, invalid URL", async ({ request }) => {
-        const resNotFound = await request.get("https://wmxrwq14uc.execute-api.us-east-1.amazonaws.com/Prod/api/EmployeesXYZ", {
-            headers: { Authorization: "Basic VGVzdFVzZXI4OTk6I3paWDtRfGlxRjh6" },
+    test("should return 404 for invalid endpoint", async ({ request }) => {
+        const response = await request.get(`${BASE_URL}/EmployeesXYZ`, {
+            headers: AUTH_HEADER,
         });
-        expect(resNotFound.status()).toBe(404);
+
+        expect(response.status()).toBe(404);
     });
 });
